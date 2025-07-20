@@ -140,7 +140,7 @@
             animation: cardPop 0.3s ease-in-out;
         }
         @keyframes cardPop {
-            from { transform: scale(0ganized95); opacity: 0; }
+            from { transform: scale(0.95); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
         table {
@@ -263,6 +263,18 @@
         }
         .edit-button:hover {
             background: #6e45e2;
+        }
+        .delete-button {
+            background: #ff6f61;
+            padding: 5px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            display: inline-block;
+            pointer-events: auto;
+        }
+        .delete-button:hover {
+            background: #de3d6d;
         }
         .action-buttons {
             display: flex;
@@ -417,7 +429,7 @@
         let currentTestQuestions = [];
         let timerInterval = null;
         let timeLeft = 300; // 5 minutes in seconds
-        const ADMIN_PASSWORD = 'admin123';
+        const ADMIN_PASSWORD = 'Itsqmet0409';
         let isAdminLoggedIn = false;
         let lastParticipantScore = null;
         let editingTestIndex = null;
@@ -557,6 +569,8 @@
                         <div class="option-input"><input type="text" id="left0" placeholder="Izquierda 1"> - <input type="text" id="right0" placeholder="Derecha 1"></div>
                         <div class="option-input"><input type="text" id="left1" placeholder="Izquierda 2"> - <input type="text" id="right1" placeholder="Derecha 2"></div>
                         <div class="option-input"><input type="text" id="left2" placeholder="Izquierda 3"> - <input type="text" id="right2" placeholder="Derecha 3"></div>
+                        <div class="option-input"><input type="text" id="left3" placeholder="Izquierda 4"> - <input type="text" id="right3" placeholder="Derecha 4"></div>
+                        <div class="option-input"><input type="text" id="left4" placeholder="Izquierda 5"> - <input type="text" id="right4" placeholder="Derecha 5"></div>
                     `;
                 } else if (type === 'fillblank') {
                     optionsDiv.innerHTML = `
@@ -569,6 +583,8 @@
                         <div class="option-input"><input type="text" id="order0" placeholder="Elemento 1"></div>
                         <div class="option-input"><input type="text" id="order1" placeholder="Elemento 2"></div>
                         <div class="option-input"><input type="text" id="order2" placeholder="Elemento 3"></div>
+                        <div class="option-input"><input type="text" id="order3" placeholder="Elemento 4"></div>
+                        <div class="option-input"><input type="text" id="order4" placeholder="Elemento 5"></div>
                     `;
                 }
                 if (editingQuestionIndex !== null) {
@@ -586,14 +602,18 @@
                         document.getElementById('correctAnswer').value = question.correctAnswer;
                     } else if (question.type === 'matching') {
                         question.pairs.forEach((pair, i) => {
-                            document.getElementById(`left${i}`).value = pair.left;
-                            document.getElementById(`right${i}`).value = pair.right;
+                            if (document.getElementById(`left${i}`)) {
+                                document.getElementById(`left${i}`).value = pair.left;
+                                document.getElementById(`right${i}`).value = pair.right;
+                            }
                         });
                     } else if (question.type === 'fillblank') {
                         document.getElementById('correctAnswer').value = question.correctAnswer;
                     } else if (question.type === 'ordering') {
                         question.order.forEach((item, i) => {
-                            document.getElementById(`order${i}`).value = item;
+                            if (document.getElementById(`order${i}`)) {
+                                document.getElementById(`order${i}`).value = item;
+                            }
                         });
                     }
                     document.getElementById('addQuestionButton').textContent = 'Actualizar Pregunta';
@@ -635,7 +655,7 @@
                     questionData.correctAnswer = document.getElementById('correctAnswer').value;
                 } else if (type === 'matching') {
                     let pairs = [];
-                    for (let i = 0; i < 3; i++) {
+                    for (let i = 0; i < 5; i++) {
                         const left = document.getElementById(`left${i}`)?.value.trim();
                         const right = document.getElementById(`right${i}`)?.value.trim();
                         if (left && right) pairs.push({ left, right });
@@ -654,7 +674,7 @@
                     questionData.correctAnswer = correctAnswer;
                 } else if (type === 'ordering') {
                     let order = [];
-                    for (let i = 0; i < 3; i++) {
+                    for (let i = 0; i < 5; i++) {
                         const item = document.getElementById(`order${i}`)?.value.trim();
                         if (item) order.push(item);
                     }
@@ -749,6 +769,25 @@
             }
         }
 
+        // Delete test
+        function deleteTest(index) {
+            try {
+                console.log(`Eliminando prueba ${index}`);
+                if (confirm('¿Estás seguro de que deseas eliminar esta prueba?')) {
+                    tests.splice(index, 1);
+                    if (isLocalStorageAvailable()) {
+                        localStorage.setItem('tests', JSON.stringify(tests));
+                    }
+                    updateTestList();
+                    loadTests();
+                    alert('Prueba eliminada exitosamente.');
+                }
+            } catch (e) {
+                console.error('Error en deleteTest:', e);
+                alert('Error al eliminar la prueba.');
+            }
+        }
+
         // Update test list
         function updateTestList() {
             try {
@@ -763,7 +802,10 @@
                     testList.innerHTML += `
                         <div class="test-item">
                             ${test.name}
-                            <button class="edit-button" data-index="${index}">Editar</button>
+                            <div class="action-buttons">
+                                <button class="edit-button" data-index="${index}">Editar</button>
+                                <button class="delete-button" data-index="${index}" onclick="deleteTest(${index})">Eliminar</button>
+                            </div>
                         </div>
                     `;
                 });
@@ -1218,8 +1260,8 @@
                 XLSX.utils.book_append_sheet(workbook, worksheet, 'Resultados');
                 XLSX.writeFile(workbook, 'Resultados_Pruebas.xlsx');
             } catch (e) {
-            console.error('Error al descargar Excel:', e);
-            alert('Error al generar el archivo Excel.');
+                console.error('Error al descargar Excel:', e);
+                alert('Error al generar el archivo Excel.');
             }
         }
 
